@@ -5,6 +5,7 @@
 #include <msgpack.hpp>
 #include <numbers>
 #include <sstream>
+#include <vector>
 
 msgpack::sbuffer create_msg(size_t size) {
     msgpack::sbuffer sbuf;
@@ -83,6 +84,19 @@ struct DoubleVisitor : DefaultErrorVisitor<DoubleVisitor> {
         value = v;
         return true;
     }
+};
+
+class Deserializer {
+  public:
+    Deserializer(char const* data, size_t length, size_t size)
+        : data_{data}, length_{length}, size_{size}, values_(size) {}
+
+  private:
+    char const* data_;
+    size_t length_;
+    size_t size_{};
+    size_t offset_{};
+    std::vector<double> values_;
 };
 
 int main() {
