@@ -4,6 +4,7 @@
 #include <iostream>
 #include <msgpack.hpp>
 #include <numbers>
+#include <numeric>
 #include <sstream>
 #include <vector>
 
@@ -12,7 +13,7 @@ msgpack::sbuffer create_msg(size_t size) {
     msgpack::packer<msgpack::sbuffer> pk(&sbuf);
     double const value = std::numbers::pi;
     for (size_t i = 0; i < size; i++) {
-        pk.pack(i);
+        pk.pack(value);
     }
     return sbuf;
 }
@@ -91,12 +92,38 @@ class Deserializer {
     Deserializer(char const* data, size_t length, size_t size)
         : data_{data}, length_{length}, size_{size}, values_(size) {}
 
+    void parse_all() {
+        offset_ = 0;
+        for (size_t i = 0; i < size_; i++) {
+            parse_double(i);
+        }
+    }
+
+    void skip_all() {
+        offset_ = 0;
+        for (size_t i = 0; i < size_; i++) {
+            parse_skip(i);
+        }
+    }
+
+    double sum_all() { return std::reduce(values_.cbegin(), values_.cend()); }
+
   private:
     char const* data_;
     size_t length_;
-    size_t size_{};
+    size_t size_;
     size_t offset_{};
     std::vector<double> values_;
+
+    void parse_skip(size_t /* pos */) {
+        DefaultNullVisitor visitor{};
+        msgpack::parse(data_, length_, offset_, visitor);
+    }
+
+    void parse_double(size_t pos) {
+        DoubleVisitor visitor{.value = values_[pos]};
+        msgpack::parse(data_, length_, offset_, visitor);
+    }
 };
 
 int main() {
@@ -106,5 +133,9 @@ int main() {
     constexpr size_t size = 10;
 #endif
     auto const sbuf = create_msg(size);
+    Deserializer deserializer(sbuf.data(), sbuf.size(), size);
+    deserializer.skip_all();
+    deserializer.parse_all();
+    std::cout << "Sum: " << deserializer.sum_all() << '\n';
     return 0;
 }
