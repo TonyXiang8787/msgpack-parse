@@ -1,0 +1,10 @@
+Language: Cpp
+BasedOnStyle: LLVM
+ColumnLimit: 120
+IndentWidth: 4
+
+# New settings
+
+AlwaysBreakTemplateDeclarations: MultiLine
+PackConstructorInitializers: NextLine
+PointerAlignment: Left
