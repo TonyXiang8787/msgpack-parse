@@ -1,3 +1,4 @@
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <exception>
@@ -134,8 +135,19 @@ int main() {
 #endif
     auto const sbuf = create_msg(size);
     Deserializer deserializer(sbuf.data(), sbuf.size(), size);
+
+    auto start = std::chrono::high_resolution_clock::now();
     deserializer.skip_all();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+    std::cout << "Time taken to skip: " << duration.count() << " seconds\n";
+
+    start = std::chrono::high_resolution_clock::now();
     deserializer.parse_all();
+    end = std::chrono::high_resolution_clock::now();
+    duration = std::chrono::duration_cast<std::chrono::seconds>(end - start);
+    std::cout << "Time taken to parse: " << duration.count() << " seconds\n";
+
     std::cout << "Sum: " << deserializer.sum_all() << '\n';
     return 0;
 }
